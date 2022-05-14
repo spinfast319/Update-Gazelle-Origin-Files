@@ -20,6 +20,11 @@ directory_to_update = "M:\Python Test Environment\Albums" # Which directory has 
 log_directory = "M:\Python Test Environment\Logs" # Which directory do you want the log albums that have missing origin files in?
 work_directory = "M:\Python Test Environment\Work" # Create directory for temp file storage and renaming
 
+# Set your site and API information here
+# for linux you can just have this be in your bashenv
+site_ident = "red" # set your gazelle site here
+api_key = "f58ed5e7.de54a910859e43773f2a4408e6355940" # set your spi key here
+
 # Set up the counters for completed albums and missing origin files
 count = 0
 missing = 0
@@ -59,6 +64,11 @@ def update_origin(directory):
               data = yaml.load(f, Loader=yaml.FullLoader)
             album_url = data['Permalink']    
             print("The album is at " + album_url)
+            
+            # run gazelle origin on the url and write the new origin file to the directory
+            the_command = "gazelle-origin -t " + site_ident + " --api-key " + api_key + " " + album_url + " -o \"" + directory + "\\neworigin.yaml\"" #windows
+            #print(the_command)
+            subprocess.run (the_command) # Executes the freesetag freeze command on the directory you are in
 
                         
 
