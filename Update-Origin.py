@@ -5,8 +5,7 @@
 # It takes the folder and opens the yaml to get the url. It then uses the url to run origin query and names the file something differnt.
 # It then deletes the original origin and renames the new one to origin.
 # It can handle albums with artwork folders or multiple disc folders in them. It can also handle specials characters and removes any characters that makes windows fail.
-# It can also handle multiple versions of the same album. If it finds a folder already exists with the album name it will rename it with additional metadata.
-# It starts with adding the edition if it has one, then it tries the catalog number, then the year. It will fail if versions with those already exists but that could be extended if needed.
+# You need gazelle-origin installled for it to work.
 
 # Import dependencies
 import os  # Imports functionality that let's you interact with your operating system
@@ -14,16 +13,19 @@ import yaml  # Imports yaml
 import shutil # Imports functionality that lets you copy files and directory
 import datetime # Imports functionality that lets you make timestamps
 import subprocess  # Imports functionality that let's you run command line commands in a script
+import requests # Imports the ability to make web or api requests
+
 
 #  Set your directories here
-directory_to_update = "M:\Python Test Environment\Albums" # Which directory has the albums you want to update the origin files for
-log_directory = "M:\Python Test Environment\Logs" # Which directory do you want the log albums that have missing origin files in?
-work_directory = "M:\Python Test Environment\Work" # Create directory for temp file storage and renaming
+directory_to_update = "M:\Python Test Environment\Albums\\" # Which directory has the albums you want to update the origin files for?
+completed_directory =  "M:\Python Test Environment\Done\\" # Which directory has the albums you want to update the origin files for?
+log_directory = "M:\Python Test Environment\Logs\\" # Which directory do you want the log albums that have missing origin files in?
 
 # Set your site and API information here
 # for linux you can just have this be in your bashenv
 site_ident = "red" # set your gazelle site here
-api_key = "f58ed5e7.de54a910859e43773f2a4408e6355940" # set your spi key here
+api_key = "" # set your api key here
+headers = {"Authorization": api_key}
 
 # Set up the counters for completed albums and missing origin files
 count = 0
@@ -34,26 +36,13 @@ print("")
 print("Engage!")
 print("")
 
-#  A function to replace illegal characters in the windows operating system
-#  For other operating systems you could tweak this for their illegal characters
-def cleanFilename(s):
-    if not s:
-        return ''
-    badchars = '\\/:*\"<>|'
-    badchars2 = '?'
-    for c in badchars:
-        s = s.replace(c, '-')
-    return s; 
-    #for c in badchars2:
-    #    s = s.replace(c, '？')
-    #return s; 
 
-
-
-#  A function that gets the directory and then opens the origin file and prints the name of the folder
+#  A function that gets the url of the album, downloads a new origin script and replaces the old one
 def update_origin(directory):
         global count
         global missing
+        global headers
+        #check to see if folder has bad characters and skip if it does
         print("Getting new origin file for " + directory)
         #check to see if there is an origin file
         file_exists = os.path.exists('origin.yaml')
@@ -63,60 +52,49 @@ def update_origin(directory):
             with open(directory + '\origin.yaml',encoding='utf-8') as f:
               data = yaml.load(f, Loader=yaml.FullLoader)
             album_url = data['Permalink']    
-            print("The album is at " + album_url)
-            
-            # run gazelle origin on the url and write the new origin file to the directory
-            the_command = "gazelle-origin -t " + site_ident + " --api-key " + api_key + " " + album_url + " -o \"" + directory + "\\neworigin.yaml\"" #windows
-            #print(the_command)
-            subprocess.run (the_command) # Executes the freesetag freeze command on the directory you are in
-
                         
-
+            # check to see if there is a gazelle link that exists and works
+            if album_url != None:
                 
-            '''#copy directory to work folder   
-            full_work_path = work_directory + "\\" + original_folder_name
-            shutil.copytree(directory, full_work_path)  
-            print ("--Copied " + original_folder_name + " to work directory")   
-         
-           #check to see if an album with the name exists in the artist folder and try a variation if there is 
-           #start by setting up different folder names if there is a duplicate folder (normal>edition>catalog>original year)
-            artist_album_path = artist_folder_path + "\\" + album_name  
-            isdir_album = os.path.isdir(artist_album_path)   
-            artist_album_edition_path = artist_folder_path + "\\" + album_name + " (" + str(edition) + ")"  
-            isdir_album_edition = os.path.isdir(artist_album_edition_path) 
-            artist_album_catalog_path = artist_folder_path + "\\" + album_name + " (Cat# " + str(catalog_number) + ")"  
-            isdir_album_catalog = os.path.isdir(artist_album_catalog_path)
-            artist_album_year_path = artist_folder_path + "\\" + album_name + " (" + str(original_year) + ")"  
-            isdir_album_year = os.path.isdir(artist_album_year_path)
-            #set album_name for folder based on wheter there is an existing folder and the right metadata
-            if isdir_album == False:
-                print ("--There is no folder called " + album_name + ". Rename and move the album.")
-                final_album_name = album_name 
-            elif isdir_album_edition == False and edition != None:
-                print ("--There is no folder called " + album_name + " (" + str(edition) + ". Rename and move the album.")
-                final_album_name = album_name + " (" + str(edition) + ")" 
-            elif isdir_album_catalog == False and catalog_number != None:
-                print ("--There is no folder called " + album_name + " (Cat# " + str(catalog_number) + ". Rename and move the album.")  
-                final_album_name = album_name + " (Cat# " + str(catalog_number) + ")"                 
-            elif isdir_album_year == False and original_year != None:
-                print ("--There is no folder called " + album_name + " (" + str(original_year) + ". Rename and move the album.")                  
-                final_album_name = album_name + " (" + str(original_year) + ")"  
+                # check to see if the url in origin fils goes to a real album
+                # get the torrent id from the permalink
+                torrent_id = album_url.split("=")
+                torrent_id = torrent_id[-1]
+                # create the ajax page
+                ajax_page = "https://redacted.ch/ajax.php?action=torrent&id="
+                ajax_page = ajax_page + torrent_id           
+                # do an api request to get back a success or failure
+                r = requests.get(ajax_page, headers=headers)
+                status = r.json()
+                if status['status'] == "success":
+                    print ("--The album was located.")            
+                    print("--The album is at " + album_url)
+                    
+                    # run gazelle origin on the url and write the new origin file to the directory
+                    the_command = "gazelle-origin -t " + site_ident + " --api-key " + api_key + " " + album_url + " -o \"" + directory + "\\neworigin.yaml\"" #windows
+                    print("--Downloading origin file as neworigin.yaml")
+                    subprocess.run (the_command) # Executes the gazzelle origin command on the directory you are in
             
-            #run windows string cleaning function to remove illegal characters
-            #calls the function cleanFilename feeding it the final album name and creating new cleaned variable
-            clean_final_album_name = cleanFilename(final_album_name)
-              
-            #rename album folder
-            final_album_path = work_directory + "\\" + clean_final_album_name 
-            os.rename(full_work_path,final_album_path)
-            print ("--Renamed " + original_folder_name + " to " + clean_final_album_name)    
+                    #delete the origin file
+                    #print (directory + "\\origin.yaml")
+                    os.remove(directory + "\\origin.yaml")
             
-            #move renamed album to artist folder   
-            full_artist_folder_path = artist_folder_path + "\\" + clean_final_album_name
-            shutil.move(final_album_path, full_artist_folder_path)  
-            print ("--Moved " + clean_final_album_name + " to " + artist_name + " directory")  ''' 
+                    #rename neworigin to origin
+                    print("--Renamed neworigin.yaml to origin.yaml")
+                    os.rename(directory + "\\neworigin.yaml", directory + "\\origin.yaml")
             
-            count +=1 # variable will increment every loop iteration
+                    '''#copy to completed directory
+                    print(directory)
+                    album_folder = os.path.split(directory)
+                    album_folder = album_folder[-1]
+                    new_album_path = completed_directory + album_folder
+                    shutil.copytree(directory, new_album_path)'''
+          
+                    count +=1 # variable will increment every loop iteration
+                else:
+                    print("--The album is no longer on the site.")
+            else:
+                print("--The is origin file is missing a link to the album.")
         #otherwise log that the origin file is missing
         else:
             missing +=1 # variable will increment every loop iteration
@@ -127,14 +105,14 @@ def update_origin(directory):
             if len(path_segments) == 5:
                 #log the missing origin file folders that are likely supposed to be missing
                 print ("--Missing origin file logged.")
-                the_good_log = log_directory + "\\good-log.txt"
+                the_good_log = log_directory + "good-log.txt"
                 with open(the_good_log, 'a') as log_file1:
                     log_file1.write("{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ ".\n")
                     log_file1.write(directory + "\\ is missing an origin file.\n")
             else:    
                 #log the missing origin file folders that are not likely supposed to be missing
                 print ("--Missing origin file logged.")
-                the_bad_log = log_directory + "\\bad-log.txt"
+                the_bad_log = log_directory + "bad-log.txt"
                 with open(the_bad_log, 'a') as log_file2:
                     log_file2.write("{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ ".\n")
                     log_file2.write(directory + "\\ is missing an origin file.\n")
@@ -154,6 +132,9 @@ print("Aye Aye Captain. This script updated " + str(count) + " origin files.")
 print("There were " + str(missing) + " folders with no origin files. Check the log to see what they were.")
 
 # ToDo
-# Add error handling album already exists-skip and log
+# check to see if folder name has special characters, if  so log it 
+# move the updated folders to a done folder...that way you will have a nice folder of the ones that need to be run manaully
+# Add error handling for if the gazzele link is missing (write to log)
 # test in linux
-# add some nuance to the windows character replacements
+# see if i can move the trailing slashes to the directory variable
+
