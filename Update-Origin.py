@@ -21,10 +21,12 @@ import re # Imports regex
 directory_to_update = "M:\Python Test Environment\Albums\\" # Which directory has the albums you want to update the origin files for?
 completed_directory =  "M:\Python Test Environment\Done\\" # Which directory has the albums you want to update the origin files for?
 log_directory = "M:\Python Test Environment\Logs\\" # Which directory do you want the log albums that have missing origin files in?
+work_directory = "M:\Python Test Environment\Work\\"  # Create directory for downloading the origin file to before you move it to the final directory.
 
 # Set your site and API information here
 # for linux you can just have this be in your ~/.bashrc file
-site_ident = "red" # set your gazelle site here
+site_ident = "" # set your gazelle site here
+site_ajax_page = ""
 api_key = "" # set your api key here
 headers = {"Authorization": api_key}
 
@@ -35,6 +37,7 @@ bad_missing = 0
 bad_folder_name = 0
 album_missing = 0
 link_missing = 0
+error_message = 0
 
 #intro text
 print("")
@@ -67,10 +70,11 @@ def update_origin(directory):
         global album_missing
         global link_missing
         global headers
+        global site_ajax_page
         print ("\n")
         #check to see if folder has bad characters and skip if it does
         #get album name from directory
-        re1 = re.compile(r"[\\/∕:*\"<>|?]");
+        re1 = re.compile(r"[\\/:*\"<>|?]");
         name_to_check = directory.split("\\")
         name_to_check = name_to_check[-1]
         if re1.search(name_to_check):
@@ -90,7 +94,11 @@ def update_origin(directory):
                 #open the yaml and turn the data into variables
                 with open(directory + '\origin.yaml',encoding='utf-8') as f:
                   data = yaml.load(f, Loader=yaml.FullLoader)
-                album_url = data['Permalink']    
+                album_url = data['Permalink']
+                clean_directory = data['Directory']   
+                print (directory)
+                #directory = directory_to_update + clean_directory
+                #print (directory)
                             
                 # check to see if there is a gazelle link that exists and works
                 if album_url != None:
@@ -100,35 +108,31 @@ def update_origin(directory):
                     torrent_id = album_url.split("=")
                     torrent_id = torrent_id[-1]
                     # create the ajax page
-                    ajax_page = "https://redacted.ch/ajax.php?action=torrent&id="
-                    ajax_page = ajax_page + torrent_id           
+                    ajax_page = site_ajax_page
+                    ajax_page = ajax_page + torrent_id   
+                    print(ajax_page)        
                     # do an api request to get back a success or failure
                     r = requests.get(ajax_page, headers=headers)
                     status = r.json()
                     if status['status'] == "success":
                         print ("--The album was located.")            
                         print("--The album is at " + album_url)
-                        
-                        # run gazelle origin on the url and write the new origin file to the directory
-                        the_command = "gazelle-origin -t " + site_ident + " --api-key " + api_key + " " + album_url + " -o \"" + directory + "\\neworigin.yaml\"" #windows
+                        the_command = "gazelle-origin -t " + site_ident + " --api-key " + api_key + " " + album_url + " -o \"" + work_directory + "origin.yaml\"" #windows
                         print("--Downloading origin file as neworigin.yaml")
                         subprocess.run (the_command) # Executes the gazzelle origin command on the directory you are in
                 
                         #delete the origin file
-                        #print (directory + "\\origin.yaml")
+                        print ("--Removed old origin file.")
                         os.remove(directory + "\\origin.yaml")
                 
                         #rename neworigin to origin
-                        print("--Renamed neworigin.yaml to origin.yaml")
-                        os.rename(directory + "\\neworigin.yaml", directory + "\\origin.yaml")
+                        #print("--Renamed neworigin.yaml to origin.yaml")
+                        #os.rename(directory + "\\neworigin.yaml", directory + "\\origin.yaml")
+                        
+                        #move origin.yaml file from work to directory
+                        print("--Moved origin.yaml from work directory to " + clean_directory)
+                        os.rename(work_directory + "origin.yaml", directory + "\\origin.yaml")
                 
-                        '''#copy to completed directory
-                        print(directory)
-                        album_folder = os.path.split(directory)
-                        album_folder = album_folder[-1]
-                        new_album_path = completed_directory + album_folder
-                        shutil.copytree(directory, new_album_path)'''
-              
                         count +=1 # variable will increment every loop iteration
                     else:
                         print("--The album is no longer on the site.")
@@ -178,16 +182,28 @@ for i in directories:
 #summary text
 print("")
 print("Aye Aye Captain. This script updated " + str(count) + " origin files.")
-print("--There were " + str(bad_folder_name) + " folders with illegal characters.")
-print("--There were " + str(album_missing) + " albums no longer on the site.")
-print("--There were " + str(link_missing) + " origin files with a missing link to the album.")
-print("--There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
-print("--There were " + str(good_missing) + " folders missing origin files that should not have had them. Double check if you want.")
-print("Check the logs to see which folders had errors and what they were.")
+if bad_folder_name >= 1:
+    print("--There were " + str(bad_folder_name) + " folders with illegal characters.")
+    error_message +=1 # variable will increment if statement is true
+if album_missing >= 1:
+    print("--There were " + str(album_missing) + " albums no longer on the site.")
+    error_message +=1 # variable will increment if statement is true
+if link_missing >= 1:
+    print("--There were " + str(link_missing) + " origin files with a missing link to the album.")
+    error_message +=1 # variable will increment if statement is true
+if bad_missing >= 1:
+    print("--There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
+    error_message +=1 # variable will increment if statement is true
+if good_missing >= 1:
+    print("--There were " + str(good_missing) + " folders missing origin files that should not have had them. Double check if you want.")
+    error_message +=1 # variable will increment if statement is true
+if error_message >= 1:
+    print("Check the logs to see which folders had errors and what they were.")
+else:
+    print("There were no errors.")    
 
 # ToDo
-# troubleshoot utf-8 encoding issue
-# maybe? move the updated folders to a done folder...that way you will have a nice folder of the ones that need to be run manaully
+# figure out global ajax
 # test in linux
-# see if i can move the trailing slashes to the directory variable
+# --see if i can move the trailing slashes to the directory variable
 
