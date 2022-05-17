@@ -19,7 +19,7 @@ import requests # Imports the ability to make web or api requests
 import re # Imports regex
 
 
-#  Set your directories here
+# Set your directories here
 album_directory = "M:\Python Test Environment\Albums" # Which directory has the albums you want to update the origin files for?
 log_directory = "M:\Python Test Environment\Logs" # Which directory do you want the log albums that have missing origin files in?
 work_directory = "M:\Python Test Environment\Work"  # Create directory for downloading the origin file to before you move it to the final directory.
@@ -32,7 +32,6 @@ work_directory = "/mnt/m/Python Test Environment/Work"  # Create directory for d
 '''
 
 # Set your site and API information here
-# for linux you can just have this be in your ~/.bashrc file
 site_ident = "" # set your gazelle site here
 site_ajax_page = "" # set the gazelle ajax page here
 api_key = "" # set your api key here
