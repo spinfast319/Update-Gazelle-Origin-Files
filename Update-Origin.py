@@ -1,12 +1,13 @@
 # Update Gazelle-Origin Files
 # author: hypermodified
-# version: 1.0
-# This script is meant to use the exisitng yaml origin files and update them with the more complete origin+ files
-# It takes the folder and opens the yaml to get the url. It then uses the url to run origin query and names the file something differnt.
-# It then deletes the original origin and renames the new one to origin.
-# It can handle albums with artwork folders or multiple disc folders in them. It can also handle specials characters and removes any characters that makes windows fail.
-# It has been tested and works in both ubuntu linux and windows 10
+# This script uses an exisiting yaml origin file for an album to update the file with additional metadata.
 # You need a fork of gazelle-origin with the extra metatdata installled for it to work.
+# It takes the folder and opens the yaml to get the url. It then uses the url to run origin query and saves the new origin file a work directory.
+# It then deletes the original origin file and moves the new one to the albums folder.
+# It can handle albums with artwork folders or multiple disc folders in them. 
+# It can also handle specials characters and skips and logs any characters that makes windows fail.
+# It has been tested and works in both Ubuntu Linux and Windows 10.
+
 
 # Import dependencies
 import os  # Imports functionality that let's you interact with your operating system
