@@ -3,8 +3,8 @@
 
 This project has a dependency on the gazelle-origin project created by x1ppy. gazelle-origin scrapes gazelle based sites and stores the related music metadata in a yaml file in the music albums folder. It is located here: https://github.com/x1ppy/gazelle-origin
 
-For this script to work you need to use a fork that has additional metadata.  The fork and branch that have most additional metadata right now is:
-https://github.com/spinfast319/gazelle-origin/tree/extra-data-branch
+For this script to work you need to use a fork that has additional metadata.  The fork that has the most additional metadata right now is:
+https://github.com/spinfast319/gazelle-origin
 
 This script allows you to batch update all of your origin files with new ones that have additional metadata.  It cycles through all the folders in a directory loads the yaml origin files inside them and reads url of the album. It then uses the url to run origin query and saves the new origin file a work directory. Then it deletes the original origin file and moves the new one to the album's folder. As it loops through the folders it caputres and logs any errors it encounters.
 
@@ -19,12 +19,13 @@ pip uninstall gazelle-origin
 
 Then you need to install a fork or branch with additional metadata.
 ```
-pip install git+https://github.com/spinfast319/gazelle-origin@extra-data-branch
+pip install git+https://github.com/spinfast319/gazelle-origin
 ```
 
 ## Install and set up the script
-Clone this script where you want to run it.
+Clone this script and test-config.py file where you want to run it.
 
+### 1) Edit test-config.py
 Set up or specify the three directories you will be using:
 Go to *# Set your directories here*
 1. The directory of the albums you want to update the origin files for
@@ -37,6 +38,7 @@ Go to *# Set your site and API information here*
 2. Your gazelle site's ajax page
 3. Your API key to the gazelle site
 
-Then run the script.  
+### 2) Rename test-coinfig.py to config.py
+### 3) Run the script from the command line.  
 
 
