@@ -17,24 +17,19 @@ import datetime # Imports functionality that lets you make timestamps
 import subprocess  # Imports functionality that let's you run command line commands in a script
 import requests # Imports the ability to make web or api requests
 import re # Imports regex
+import config # imports the config file where you set your API key, directories, etc
 
+# You need to set your directories, site and API information in config.py
 
-# Set your directories here
-album_directory = "M:\Python Test Environment\Albums" # Which directory has the albums you want to update the origin files for?
-log_directory = "M:\Python Test Environment\Logs" # Which directory do you want the log albums that have missing origin files in?
-work_directory = "M:\Python Test Environment\Work"  # Create directory for downloading the origin file to before you move it to the final directory.
+# Import directories from config file 
+album_directory = config.c_album_directory # imports the directory path to where your albums are
+log_directory = config.c_log_directory # imports the directory path to where you want to write your logs
+work_directory = config.c_work_directory  # imports the directory path for the folder needed for temporary renaming actions
 
-
-'''#  Set your linux directories here
-album_directory = "/mnt/m/Python Test Environment/Albums" # Which directory has the albums you want to update the origin files for
-log_directory = "/mnt/m/Python Test Environment/Logs" # Which directory do you want the log albums that have missing origin files in?
-work_directory = "/mnt/m/Python Test Environment/Work"  # Create directory for downloading the origin file to before you move it to the final directory.
-'''
-
-# Set your site and API information here
-site_ident = "" # set your gazelle site here
-site_ajax_page = "" # set the gazelle ajax page here
-api_key = "" # set your api key here
+# Imports site and API information from config file
+site_ident = config.c_site_ident # imports gazelle site flag
+site_ajax_page = config.c_site_ajax_page # imports gazelle ajax page
+api_key = config.c_api_key # imports your api key 
 headers = {"Authorization": api_key}
 
 # Set up the counters for completed albums and missing origin files
@@ -45,6 +40,11 @@ bad_folder_name = 0
 album_missing = 0
 link_missing = 0
 error_message = 0
+
+# identifies location origin files are supposed to be
+path_segments = album_directory.split(os.sep)
+segments = len(path_segments)
+origin_location = segments + 1
 
 #intro text
 print("")
@@ -63,9 +63,10 @@ def log_outcomes(d,p,m):
     log_path = log_directory + os.sep + log_name + ".txt"
     with open(log_path, 'a',encoding='utf-8') as log_name:
         log_name.write("--{:%b, %d %Y}".format(today)+ " at " +"{:%H:%M:%S}".format(today)+ " from the " + script_name + ".\n")
-        log_name.write("The album " + album_name + " " + message + ".\n")
+        log_name.write("The album folder " + album_name + " " + message + ".\n")
         log_name.write("Album location: " + directory + "\n")
-        log_name.write(" \n")     
+        log_name.write(" \n")  
+        log_name.close()
 
 #  A function that gets the url of the album, downloads a new origin script and replaces the old one
 def update_origin(directory):
@@ -77,6 +78,7 @@ def update_origin(directory):
         global link_missing
         global headers
         global site_ajax_page
+        global origin_location
         print ("\n")
         #check to see if folder has bad characters and skip if it does
         #get album name from directory
@@ -101,8 +103,9 @@ def update_origin(directory):
                 with open(directory + os.sep + 'origin.yaml',encoding='utf-8') as f:
                   data = yaml.load(f, Loader=yaml.FullLoader)
                 album_url = data['Permalink']
-                clean_directory = data['Directory']   
-                                            
+                clean_directory = data['Directory']
+                f.close()
+                                             
                 # check to see if there is a gazelle link that exists and works
                 if album_url != None:
                     
@@ -150,14 +153,15 @@ def update_origin(directory):
             #otherwise log that the origin file is missing
             else:
                 #split the directory to make sure that it distinguishes between folders that should and shouldn't have origin files
-                path_segments = directory.split(os.sep)
+                current_path_segments = directory.split(os.sep)
+                current_segments = len(current_path_segments)
                 #create different log files depending on whether the origin file is missing somewhere it shouldn't be
-                if len(path_segments) == 5:
+                if origin_location != current_segments:
                     #log the missing origin file folders that are likely supposed to be missing
                     print ("--An origin file is missing from a folder that should not have one.")
                     print("--Logged missing origin file.")
                     log_name = "good-missing-origin"
-                    log_message = "origin file is missing from a folder that should not have one. You can double check"
+                    log_message = "origin file is missing from a folder that should not have one.\nSince it shouldn't be there it is probably fine but you can double check"
                     log_outcomes(directory,log_name,log_message)
                     good_missing +=1 # variable will increment every loop iteration
                 else:    
@@ -181,21 +185,32 @@ for i in directories:
 # Summary text
 print("")
 print("Aye Aye Captain. This script updated " + str(count) + " origin files.")
+print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
 if bad_folder_name >= 1:
-    print("--There were " + str(bad_folder_name) + " folders with illegal characters.")
+    print("--Warning: There were " + str(bad_folder_name) + " folders with illegal characters.")
     error_message +=1 # variable will increment if statement is true
+elif bad_folder_name == 0:    
+    print("--Info: There were " + str(bad_folder_name) + " folders with illegal characters.")
 if album_missing >= 1:
-    print("--There were " + str(album_missing) + " albums no longer on the site.")
+    print("--Warning: There were " + str(album_missing) + " albums no longer on the site.")
     error_message +=1 # variable will increment if statement is true
+elif album_missing == 0:    
+    print("--Info: There were " + str(album_missing) + " albums no longer on the site.")
 if link_missing >= 1:
-    print("--There were " + str(link_missing) + " origin files with a missing link to the album.")
+    print("--Warning: There were " + str(link_missing) + " origin files with a missing link to the album.")
     error_message +=1 # variable will increment if statement is true
+elif link_missing == 0:    
+    print("--Info: There were " + str(link_missing) + " origin files with a missing link to the album.")
 if bad_missing >= 1:
-    print("--There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
+    print("--Warning: There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
     error_message +=1 # variable will increment if statement is true
+elif bad_missing == 0:    
+    print("--Info: There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
 if good_missing >= 1:
-    print("--There were " + str(good_missing) + " folders missing origin files that should not have had them. Double check if you want.")
+    print("--Info: Some folders didn't have origin files and probably shouldn't have origin files. " + str(good_missing) + " of these folders were identified.")
     error_message +=1 # variable will increment if statement is true
+elif good_missing == 0:    
+    print("--Info: Some folders didn't have origin files and probably shouldn't have origin files. " + str(good_missing) + " of these folders were identified.")
 if error_message >= 1:
     print("Check the logs to see which folders had errors and what they were.")
 else:
