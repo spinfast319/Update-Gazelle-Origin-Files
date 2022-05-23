@@ -8,7 +8,7 @@ https://github.com/spinfast319/gazelle-origin
 
 This script allows you to batch update all of your origin files with new ones that have additional metadata.  It cycles through all the folders in a directory loads the yaml origin files inside them and reads url of the album. It then uses the url to run origin query and saves the new origin file a work directory. Then it deletes the original origin file and moves the new one to the album's folder. As it loops through the folders it caputres and logs any errors it encounters.
 
-It can handle albums with artwork folders or multiple disc folders in them. It can also handle specials characters and skips and logs any albums that have characters that makes windows fail. It has been tested and works in both Ubuntu Linux and Windows 10.
+It can handle albums with artwork folders or multiple disc folders in them. It can also handle special characters and skips and logs any albums that have characters that makes windows fail. It has been tested and works in both Ubuntu Linux and Windows 10.
 
 ## Update gazelle-origin to grab additional metadata
 
