@@ -38,7 +38,7 @@ Go to *# Set your site and API information here*
 2. Your gazelle site's ajax page
 3. Your API key to the gazelle site
 
-### 2) Rename test-coinfig.py to config.py
+### 2) Rename test-config.py to config.py
 ### 3) Run the script from the command line.  
 
 
