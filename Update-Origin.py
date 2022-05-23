@@ -26,13 +26,16 @@ album_directory = config.c_album_directory # imports the directory path to where
 log_directory = config.c_log_directory # imports the directory path to where you want to write your logs
 work_directory = config.c_work_directory  # imports the directory path for the folder needed for temporary renaming actions
 
+# Import flag for whether you are using nested folders or have all albums in one directory from config
+album_depth = config.c_album_depth
+
 # Imports site and API information from config file
 site_ident = config.c_site_ident # imports gazelle site flag
 site_ajax_page = config.c_site_ajax_page # imports gazelle ajax page
 api_key = config.c_api_key # imports your api key 
 headers = {"Authorization": api_key}
 
-# Set up the counters for completed albums and missing origin files
+# Establishes the counters for completed albums and missing origin files
 count = 0
 good_missing = 0
 bad_missing = 0
@@ -44,7 +47,7 @@ error_message = 0
 # identifies location origin files are supposed to be
 path_segments = album_directory.split(os.sep)
 segments = len(path_segments)
-origin_location = segments + 1
+origin_location = segments + album_depth
 
 #intro text
 print("")

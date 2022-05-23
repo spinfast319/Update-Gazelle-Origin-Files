@@ -8,6 +8,12 @@ c_album_directory = "" # Which directory has the albums you want to update the o
 c_log_directory = "" # Which directory do you want the log albums that have missing origin files in?
 c_work_directory = ""  # Create directory for downloading the origin file to before you move it to the final directory.
 
+# Set whether you are using nested folders or have all albums in one directory
+# If you have all your ablums in one music directory Music/Album_name then set this value to 1
+# If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
+# The default is 1
+c_album_depth = 1
+
 # Set your site and API information here
 c_site_ident = "" # set your gazelle site here
 c_site_ajax_page = "" # set the gazelle ajax page here
@@ -19,6 +25,12 @@ c_api_key = "" # set your api key here
 c_album_directory = "M:\Music\Albums" # Which directory has the albums you want to update the origin files for?
 c_log_directory = "M:\Music\Logs" # Which directory do you want the log albums that have missing origin files in?
 c_work_directory = "M:\Music\Work"  # Create directory for downloading the origin file to before you move it to the final directory.
+
+# Set whether you are using nested folders or have all albums in one directory
+# If you have all your ablums in one music directory Music/Album_name then set this value to 1
+# If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
+# The default is 1
+c_album_depth = 1
 
 # Set your site and API information here
 c_site_ident = "red" # set your gazelle site here
