@@ -8,7 +8,7 @@ c_album_directory = "" # Which directory has the albums you want to update the o
 c_log_directory = "" # Which directory do you want the log albums that have missing origin files in?
 c_work_directory = ""  # Create directory for downloading the origin file to before you move it to the final directory.
 
-# Set whether you are using nested folders or have all albums in one directory
+# Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
 # If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 # The default is 1
