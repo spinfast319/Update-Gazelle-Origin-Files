@@ -32,6 +32,13 @@ Go to *# Set your directories here*
 2. A directory to store the log files the script creates
 3. An empty directory the script will use to temporarily hold and rename files before it moves them to the final location
 
+Set the album_depth variable to specify whether you are using nested folders or have all albums in one directory:
+Go to *# Set whether you are using nested folders or have all albums in one directory here*
+- If you have all your ablums in one music directory, ie. Music/Album then set this value to 1
+- If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
+
+The default is 1 (Music/Album)
+
 Set your gazelle site information:
 Go to *# Set your site and API information here*
 1. Your gazelle site identity three letter code
