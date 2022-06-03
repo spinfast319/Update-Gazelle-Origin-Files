@@ -42,6 +42,8 @@ bad_missing = 0
 bad_folder_name = 0
 album_missing = 0
 link_missing = 0
+api_connnection = 0
+parse_error =0
 error_message = 0
 
 # identifies location origin files are supposed to be
@@ -79,6 +81,8 @@ def update_origin(directory):
         global bad_folder_name
         global album_missing
         global link_missing
+        global api_connnection
+        global parse_error
         global headers
         global site_ajax_page
         global origin_location
@@ -102,9 +106,20 @@ def update_origin(directory):
             file_exists = os.path.exists('origin.yaml')
             #if origin file exists, load it, get url, run gazelle-origin, download new one, replace old one
             if file_exists == True:
-                #open the yaml and turn the data into variables
-                with open(directory + os.sep + 'origin.yaml',encoding='utf-8') as f:
-                  data = yaml.load(f, Loader=yaml.FullLoader)
+                #open the yaml 
+                try:
+                    with open(directory + os.sep + 'origin.yaml',encoding='utf-8') as f:
+                      data = yaml.load(f, Loader=yaml.FullLoader)
+                except:
+                    print("--There was an issue parsing the yaml file and the cover could not be downloaded.")
+                    print("----Logged missing cover due to parse error. Redownload origin file.")
+                    log_name = "parse-error"
+                    log_message = "had an error parsing the yaml and the cover art could not be downloaded. Redownload the origin file"
+                    log_outcomes(directory,log_name,log_message)
+                    parse_error +=1 # variable will increment every loop iteration
+                    return
+                  
+                # turn the data into variables  
                 album_url = data['Permalink']
                 clean_directory = data['Directory']
                 f.close()
@@ -120,15 +135,32 @@ def update_origin(directory):
                     ajax_page = site_ajax_page
                     ajax_page = ajax_page + torrent_id          
                     # do an api request to get back a success or failure
-                    r = requests.get(ajax_page, headers=headers)
-                    status = r.json()
+                    try:
+                        r = requests.get(ajax_page, headers=headers)
+                        status = r.json()
+                    except:
+                        print("--There was an issue connection to the API. Please try again later.")
+                        print("This album was logged as skipped.")
+                        log_name = "api-connnection"
+                        log_message = "was skipped due to the API not responding"
+                        log_outcomes(directory,log_name,log_message)
+                        api_connnection +=1 # variable will increment every loop iteration
+                        return
                     if status['status'] == "success":
                         print ("--The album was located.")            
                         #print("--The album is at " + album_url)
                         the_command = "gazelle-origin -t " + site_ident + " --api-key " + api_key + " " + album_url + " -o \"" + work_directory + os.sep + "origin.yaml\"" 
                         print("--Downloading new origin file as origin.yaml in work directory")
-                        subprocess.run (the_command, shell=True) # Executes the gazzelle origin command on the directory you are in
-                
+                        try:
+                            subprocess.run (the_command, shell=True) # Executes the gazzelle origin command on the directory you are in
+                        except:
+                            print("--There was an issue connection to the API. Please try again later.")
+                            print("This album was logged as skipped.")
+                            log_name = "api-connnection"
+                            log_message = "was skipped due to the API not responding"
+                            log_outcomes(directory,log_name,log_message)
+                            api_connnection +=1 # variable will increment every loop iteration  
+                        
                         #delete the origin file
                         print ("--Removed old origin file.")
                         os.remove(directory + os.sep + "origin.yaml")              
@@ -204,6 +236,16 @@ if link_missing >= 1:
     error_message +=1 # variable will increment if statement is true
 elif link_missing == 0:    
     print("--Info: There were " + str(link_missing) + " origin files with a missing link to the album.")
+if api_connnection >= 1:
+    print("--Warning: There were " + str(api_connnection) + " albums skipped due to a bad connection with the API. Please try these again.")
+    error_message +=1 # variable will increment if statement is true
+elif api_connnection == 0:    
+    print("--Info: There were " + str(api_connnection) + " albums skipped due to a bad connection with the API.")
+if parse_error >= 1:
+    print("--Warning: There were " + str(parse_error) + " albums skipped due to not being able to open the yaml. Redownload the yaml file.")
+    error_message +=1 # variable will increment if statement is true
+elif parse_error == 0:    
+    print("--Info: There were " + str(parse_error) + " albums skipped due to not being able to open the yaml.")
 if bad_missing >= 1:
     print("--Warning: There were " + str(bad_missing) + " folders missing an origin files that should have had them.")
     error_message +=1 # variable will increment if statement is true
@@ -218,4 +260,6 @@ if error_message >= 1:
     print("Check the logs to see which folders had errors and what they were.")
 else:
     print("There were no errors.")    
+    
+    
 
