@@ -26,6 +26,9 @@ pip install git+https://github.com/spinfast319/gazelle-origin
 Clone this script and test-config.py file where you want to run it.
 
 ### 1) Edit test-config.py
+
+Make a copy of test-config.py and rename it config.py
+
 Set up or specify the three directories you will be using:
 Go to *# Set your directories here*
 1. The directory of the albums you want to update the origin files for
