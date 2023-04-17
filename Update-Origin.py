@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Update Gazelle-Origin Files
 # author: hypermodified
 # This script uses an exisiting yaml origin file for an album to update the file with additional metadata.
