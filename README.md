@@ -10,6 +10,8 @@ This script allows you to batch update all of your origin files with new ones th
 
 It can handle albums with artwork folders or multiple disc folders in them. It can also handle special characters and skips and logs any albums that have characters that makes windows fail. It has been tested and works in both Ubuntu Linux and Windows 10.
 
+This script is meant to be run to put you in a position to manage your music library (update cover art, sort, tag, rename) files based off of the metadata in these more complete origin files. Once you have updated your origin files you can use a set of scripts to manage a large music library.  You can find an overview of the scripts and workflow at [Origin-Music-Management](https://github.com/spinfast319/Origin-Music-Management). 
+
 ## Update gazelle-origin to grab additional metadata
 
 First you need to uninstall gazelle origin.
@@ -48,7 +50,18 @@ Go to *# Set your site and API information here*
 2. Your gazelle site's ajax page
 3. Your API key to the gazelle site
 
-### 2) Rename test-config.py to config.py
-### 3) Run the script from the command line.  
+### 2) Run the script from the command line.  
+
+Use your terminal to navigate to the directory the script is in and run the script from the command line.  When it finishes it will output how many origin files it updated.
+
+```
+Update-Origin.py
+```
+
+_note: on linux and mac you will likely need to type "python3 Update-Origin.py"_  
+_note 2: you can run the script from anywhere if you provide the full path to it_
+
+The script will also create logs listing any origin files that it has problems updating.  
+
 
 
